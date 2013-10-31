@@ -683,11 +683,20 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             } catch (Throwable t) {
                 outboundBuffer.failFlushed(t);
                 if (t instanceof IOException) {
-                    close(voidPromise());
+                    invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            closeOnFlushIOException();
+                        }
+                    });
                 }
             } finally {
                 inFlush0 = false;
             }
+        }
+
+        protected void closeOnFlushIOException() {
+            close(voidPromise());
         }
 
         @Override

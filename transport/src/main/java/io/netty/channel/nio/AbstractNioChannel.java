@@ -149,6 +149,17 @@ public abstract class AbstractNioChannel extends AbstractChannel {
     protected abstract class AbstractNioUnsafe extends AbstractUnsafe implements NioUnsafe {
 
         @Override
+        protected void closeOnFlushIOException() {
+            // Try to read the remaining data from the Channel before actual close it if needed.
+            // See https://github.com/netty/netty/issues/1952
+            if (isOpen() && config().isAutoRead()) {
+                read();
+            }
+
+            super.closeOnFlushIOException();
+        }
+
+        @Override
         public SelectableChannel ch() {
             return javaChannel();
         }
